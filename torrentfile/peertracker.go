@@ -1,7 +1,6 @@
 package torrentfile
 
 import (
-	"crypto/rand"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -42,7 +41,7 @@ func (tf *TorrentFile) ConnectToPeers() (trackerResp, error) {
 	//create a peerID (random)
 
 	var peer_id [20]byte 
-	_, err:= rand.Read(peer_id[:])
+	// _, err:= rand.Read(peer_id[:])
 
 
 	
@@ -68,7 +67,10 @@ func (tf *TorrentFile) ConnectToPeers() (trackerResp, error) {
 		return trackerResp{}, err
 	}
 
+	fmt.Println(trackRes)
+
 	return trackRes, nil
+
 
 	//we will update the function to return Peers instead
 
