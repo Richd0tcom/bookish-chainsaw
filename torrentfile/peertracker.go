@@ -2,9 +2,8 @@ package torrentfile
 
 import (
 	"crypto/rand"
-	_ "crypto/sha1"
 	"fmt"
-	"net/http"
+	
 	"net/url"
 	"os"
 	"strconv"
@@ -12,6 +11,8 @@ import (
 	"github.com/Richd0tcom/bookish-chainsaw/comms"
 	"github.com/Richd0tcom/bookish-chainsaw/peers"
 	"github.com/jackpal/bencode-go"
+
+	"net/http"
 )
 
 type trackerResp struct {

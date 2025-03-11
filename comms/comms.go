@@ -7,9 +7,11 @@ import (
 	"log"
 	"time"
 
-	"github.com/Richd0tcom/bookish-chainsaw/comms/client"
+	"github.com/Richd0tcom/bookish-chainsaw/client"
 	"github.com/Richd0tcom/bookish-chainsaw/message"
 	"github.com/Richd0tcom/bookish-chainsaw/peers"
+
+	
 )
 
 // MaxBlockSize is the largest number of bytes a request can ask for

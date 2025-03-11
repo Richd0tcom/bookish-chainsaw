@@ -2,7 +2,7 @@ package torrentfile
 
 import (
 	"bytes"
-	"crypto/Sha1"
+	"crypto/sha1"
 	"fmt"
 	"os"
 

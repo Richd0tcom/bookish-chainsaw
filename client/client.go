@@ -59,7 +59,7 @@ func recvBitfield(conn net.Conn) (bitfield.Bitfield, error) {
 		return nil, err
 	}
 	if msg == nil {
-		err := fmt.Errorf("Expected bitfield but got %s", msg)
+		err := fmt.Errorf("Expected bitfield but got %s", msg.ID)
 		return nil, err
 	}
 	if msg.ID != message.MSG_BITFIELD {
