@@ -25,7 +25,9 @@ type Torrent struct {
 	PeerID [20]byte
 
 	Peers []peers.Peer
-	Length int //length of a piece
+	Length int 
+	PieceLength int //length of a piece
+	Name        string
 }
 
 type pieceWork struct {
@@ -82,8 +84,8 @@ func (state *pieceProgress) readMessage() error {
 }
 
 func (t *Torrent) calculateBoundsForPiece(index int) (begin int, end int) {
-	begin = index * t.Length
-	end = min(begin + t.Length, t.Length)
+	begin = index * t.PieceLength
+	end = min(begin + t.PieceLength, t.Length)
 	return begin, end
 }
 
@@ -175,7 +177,7 @@ func (t *Torrent) startDownloadWorker(peer peers.Peer, workQueue chan *pieceWork
 } 
 
 
-func (t *Torrent) Download() {
+func (t *Torrent) Download() ([]byte, error){
 
 
 	// Init queues for workers to retrieve work and send results
@@ -200,6 +202,10 @@ func (t *Torrent) Download() {
 		begin, end := t.calculateBoundsForPiece(res.index)
 		copy(buf[begin:end], res.buf)
 		donePieces++
+
+		//TODO: Add download percentage logging
 	}
 	close(workQueue)
+
+	return buf, nil
 }

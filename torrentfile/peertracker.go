@@ -1,12 +1,16 @@
 package torrentfile
 
 import (
+	"crypto/rand"
+	_ "crypto/sha1"
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
-	_ "crypto/sha1"
 
+	"github.com/Richd0tcom/bookish-chainsaw/comms"
+	"github.com/Richd0tcom/bookish-chainsaw/peers"
 	"github.com/jackpal/bencode-go"
 )
 
@@ -38,15 +42,9 @@ func (tf *TorrentFile) buildTrackerURL(port uint16, peerID [20]byte) (string, er
 }
 
 
-func (tf *TorrentFile) ConnectToPeers() (trackerResp, error) {
-	//create a peerID (random)
+func (tf *TorrentFile) ConnectToPeers(peerID [20]byte) ([]peers.Peer, error) {
 
-	var peer_id [20]byte 
-	// _, err:= rand.Read(peer_id[:])
-
-
-	
-	url, err:= tf.buildTrackerURL(Port, peer_id)
+	url, err:= tf.buildTrackerURL(Port, peerID)
 
 
 	c:= http.Client{}
@@ -54,7 +52,7 @@ func (tf *TorrentFile) ConnectToPeers() (trackerResp, error) {
 	response, err:= c.Get(url)
 	if err != nil {
 		fmt.Println(err)
-		return trackerResp{}, err
+		return []peers.Peer{}, err
 	}
 
 	defer response.Body.Close()
@@ -65,15 +63,54 @@ func (tf *TorrentFile) ConnectToPeers() (trackerResp, error) {
 
 	if err != nil {
 		fmt.Println(err)
-		return trackerResp{}, err
+		return []peers.Peer{}, err
 	}
 
 	fmt.Println(trackRes)
 
-	return trackRes, nil
+	return peers.ParsePeers([]byte(trackRes.Peers))
 
 
 	//we will update the function to return Peers instead
 
 	
+}
+
+// DownloadToFile downloads a torrent and writes it to a file
+func (t *TorrentFile) DownloadToFile(path string) error {
+	var peerID [20]byte
+	_, err := rand.Read(peerID[:])
+	if err != nil {
+		return err
+	}
+
+	peers, err := t.ConnectToPeers(peerID)
+	if err != nil {
+		return err
+	}
+
+	torrent := comms.Torrent{
+		Peers:       peers,
+		PeerID:      peerID,
+		InfoHash:    t.InfoHash,
+		PieceHashes: t.PieceHashes,
+		PieceLength: t.PieceLength,
+		Length:      t.Length,
+		Name:        t.Name,
+	}
+	buf, err := torrent.Download()
+	if err != nil {
+		return err
+	}
+
+	outFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+	_, err = outFile.Write(buf)
+	if err != nil {
+		return err
+	}
+	return nil
 }
