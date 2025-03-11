@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"strconv"
 	"time"
 )
 
@@ -44,4 +45,8 @@ func StartConnection(ps []Peer) {
             net.DialTimeout("tcp", p.IP.String(), 3*time.Second)
         }(&p)
     }
+}
+
+func (p Peer) String() string {
+    return net.JoinHostPort(p.IP.String(), strconv.Itoa(int(p.Port)))
 }

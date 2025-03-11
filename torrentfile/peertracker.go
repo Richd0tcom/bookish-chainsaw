@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	_ "crypto/sha1"
 
 	"github.com/jackpal/bencode-go"
 )

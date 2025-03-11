@@ -1,8 +1,12 @@
 package handshake
 
+import (
+	"fmt"
+	"io"
+)
 
 //
-// 
+//
 //
 //
 //The protocol identifier, called the pstr which is always BitTorrent protocol
@@ -20,14 +24,26 @@ type Handshake struct {
 	PeerID [20]byte
 }
 
-func (hs *Handshake) Serialize() []byte{
+const BYTE_LEN = 49
+
+// creates a new hand shake
+func New(infoHash, peerID [20]byte) (*Handshake) {
+	return &Handshake{
+		Pstr:     "BitTorrent protocol",
+		InfoHash: infoHash,
+		PeerID:   peerID,
+	}
+}
+
+func (hs *Handshake) Serialize() []byte {
 
 	// 1 byte for protocol id length
+	// n bytes for protocol string 
 	// 8 reserved bytes
 	// 20 bytes for peer id
 	// 20 bytes for info hash
-	// 1 + 8 + 20 + 20 = 49
-	BYTE_LEN := 49
+	// 1 + 8 + 20 + 20 + n = 49 + n
+	
 
 	buf := make([]byte, len(hs.Pstr)+BYTE_LEN) 
 	buf[0] = byte(len(hs.Pstr))
@@ -40,11 +56,36 @@ func (hs *Handshake) Serialize() []byte{
 	return buf
 }
 
-func (hs *Handshake) DeSerialize(buf []byte) error {
-	pstrLen := int(buf[0])
-	hs.Pstr = string(buf[1:pstrLen+1])
-	hs.InfoHash = [20]byte(buf[9 + pstrLen: 20 +1])
-	hs.PeerID = [20]byte(buf[9 + pstrLen + 20: ])
+func (hs *Handshake) DeSerialize(pstrLen int, buf []byte) error {
+	
+	hs.Pstr = string(buf[0:pstrLen])
+	hs.InfoHash = [20]byte(buf[8 + pstrLen: 20 +1])
+	hs.PeerID = [20]byte(buf[8 + pstrLen + 20: ])
 
+	return nil
+}
+
+func (hs *Handshake) Read(r io.Reader) error {
+	lengthBuf := make([]byte, 1)
+	_, err := io.ReadFull(r, lengthBuf)
+	if err != nil {
+		return err
+	}
+	pstrlen := int(lengthBuf[0])
+
+	if pstrlen == 0 {
+		err := fmt.Errorf("pstrlen cannot be 0")
+		return err
+	}
+
+	handshakeBuf := make([]byte, BYTE_LEN-1+pstrlen) //we subtract one byte because we already read it
+	_, err = io.ReadFull(r, handshakeBuf)
+	if err != nil {
+		return err
+	}
+	err = hs.DeSerialize(pstrlen, handshakeBuf)
+	if err != nil {
+		return err
+	}
 	return nil
 }
